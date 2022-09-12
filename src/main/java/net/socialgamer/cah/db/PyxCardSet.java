@@ -2,9 +2,9 @@ package net.socialgamer.cah.db;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -13,16 +13,20 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
-import net.socialgamer.cah.Constants.CardSetData;
-import net.socialgamer.cah.data.CardSet;
-
 import org.hibernate.Session;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+
+import net.socialgamer.cah.Constants.CardSetData;
+import net.socialgamer.cah.data.CardSet;
 
 
 @Entity
 @Table(name = "card_set")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class PyxCardSet extends CardSet {
 
   @Id
@@ -41,6 +45,7 @@ public class PyxCardSet extends CardSet {
       joinColumns = { @JoinColumn(name = "card_set_id") },
       inverseJoinColumns = { @JoinColumn(name = "black_card_id") })
   @LazyCollection(LazyCollectionOption.TRUE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private final Set<PyxBlackCard> blackCards;
 
   @ManyToMany
@@ -49,6 +54,7 @@ public class PyxCardSet extends CardSet {
       joinColumns = { @JoinColumn(name = "card_set_id") },
       inverseJoinColumns = { @JoinColumn(name = "white_card_id") })
   @LazyCollection(LazyCollectionOption.TRUE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private final Set<PyxWhiteCard> whiteCards;
 
   public PyxCardSet() {
@@ -125,20 +131,20 @@ public class PyxCardSet extends CardSet {
     final Map<CardSetData, Object> cardSetData = getCommonClientMetadata();
     final Number blackCount = (Number) hibernateSession
         .createQuery("select count(*) from PyxCardSet cs join cs.blackCards where cs.id = :id")
-        .setParameter("id", id).uniqueResult();
+        .setParameter("id", id).setCacheable(true).uniqueResult();
     cardSetData.put(CardSetData.BLACK_CARDS_IN_DECK, blackCount);
     final Number whiteCount = (Number) hibernateSession
         .createQuery("select count(*) from PyxCardSet cs join cs.whiteCards where cs.id = :id")
-        .setParameter("id", id).uniqueResult();
+        .setParameter("id", id).setCacheable(true).uniqueResult();
     cardSetData.put(CardSetData.WHITE_CARDS_IN_DECK, whiteCount);
     return cardSetData;
   }
 
-  public static String getCardsetQuery(final Properties properties) {
-    if (Boolean.valueOf(properties.getProperty("pyx.server.include_inactive_cardsets"))) {
-      return "from PyxCardSet order by weight, id";
+  public static String getCardsetQuery(final boolean includeInactive) {
+    if (includeInactive) {
+      return "from PyxCardSet order by weight, name";
     } else {
-      return "from PyxCardSet where active = true order by weight, id";
+      return "from PyxCardSet where active = true order by weight, name";
     }
   }
 }

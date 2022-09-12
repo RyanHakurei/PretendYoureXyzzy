@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <%--
-Copyright (c) 2012, Andy Janata
+Copyright (c) 2012-2018, Andy Janata
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -35,8 +35,15 @@ to, for instance, display the number of connected players.
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Pretend You're Xyzzy</title>
 <jsp:include page="analytics.jsp" />
+<link rel="stylesheet" type="text/css" href="cah.css" media="screen" />
 </head>
 <body>
+<div id="tweetbox">
+  <h3>Recent tweets (mainly server status updates)</h3>
+  <a class="twitter-timeline" data-height="500" data-dnt="true" data-theme="light"
+  href="https://twitter.com/_PYX_?ref_src=twsrc%5Etfw">Tweets by _PYX_</a>
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</div>
 <h1>
   Pretend You're <dfn style="border-bottom: 1px dotted black"
   title="Xyzzy is an Artificial Unintelligence bot. You'll be making more sense than him in this game.">
@@ -44,88 +51,16 @@ to, for instance, display the number of connected players.
 </h1>
 <h3>A Cards Against Humanity clone.</h3>
 <p>
-  This webapp is still in development. There will be bugs, but hopefully they won't affect gameplay
-  very much. To assist with development, <strong>all traffic on this server <em>may</em> be
-  logged.</strong>
-</p>
-<p>
-  The name you enter and your computer's IP address will <strong>always</strong> be logged when you
-  load the game client. Chat and gameplay may also be logged.
+  Your computer's IP address will <strong>always</strong> be logged when you load the game client.
+  It is not tied in any way to your username, except possibly if a server error occurs. Gameplay
+  results are logged permanently, but without information identifying you.
 </p>
 <p>Recent Changes:</p>
 <ul>
-  <li>11 August 2014:<ul>
-    <li>Loading decks from <a href="http://www.cardcastgame.com/">Cardcast</a> is now supported in a
-    preview release. See <a href="https://github.com/ajanata/PretendYoureXyzzy/wiki/Cardcast">the
-    wiki</a> for instructions. A better UI will hopefully happen before too long, but you can see
-    how long it took to get any sort of custom deck loading implemented...</li>
-    <li>Please go make your own card sets there! It's a really cool site.</li>
-    <li><strong>If you submitted a card set which is currently hosted locally on PYX, please add it
-    to Cardcast and let me know when you have done so, so that I may remove it from the local list
-    to de-clutter the page.</strong> I will list Cardcast codes for previously-hosted decks for a
-    period of time so that users may continue to find them.</li>
-  </ul></li>
-  <li>7 April 2014:<ul>
-    <li>Exploits avoiding the maximum limits for game options have been fixed. No more games with
-    9001 blank white cards.</li>
-  </ul></li>
-  <li>23 February 2014:<ul>
-    <li>Some minor bugfixes, including one which should prevent the entire server from dying if a
-    single background task gets stuck.</li>
-    <li>Some minor performance improvements.</li>
-    <li><a href="http://houseofcardsagainsthumanity.com/">House of Cards Against Humanity</a> is now
-    available.</li>
-  </ul></li>
-  <li>26 January 2014:<ul>
-    <li>Several bugs have been fixed:<ul>
-      <li><strong>Games should no longer reset when an idle player is kicked.</strong></li>
-      <li>The judge should no longer have to re-judge when a player leaves during judging.</li>
-      <li>The playing field should no longer visibly blank out when a player joins or leaves.</li>
-    </ul></li>
-    <li>The game host has a "stop game" button. If this is abused, it may be changed to only work
-    in the first few rounds of a game.</li>
-    <li>You can filter which games to display based on what card sets they are using. Under the
-    Game List Filters tab, you can assign each card set to one of three statuses: Banned, Neutral,
-    and Required. If a game uses <strong>any</strong> of your banned sets, it will not be shown. If
-    a game does not use <strong>all</strong> of your required sets, it also will not be shown.</li>
-  </ul></li>
-  <li>22 December 2013:<ul>
-    <li>What I have received so far of the Holiday Bullshit has been added. I will continue to add
-    cards to this as I receive them.</li>
-    <li>Several custom card sets have been added.</li>
-    <li><strong>No further custom card sets will be accepted.</strong> Minor updates to existing
-    ones may still be submitted, but I do not guarantee I will get to it in a timely manner. It is
-    taking too much of my time to administer the custom cards sets; I'd rather focus the time on
-    implementing a way for players to manage card sets in the game by themselves.</li>
-    <li>Fixed a memory leak introduced in the last update that causes the server to massively slow
-    down after a few days of running.</li>
-  </ul></li>
-  <li>1 December 2013 Mega-Update:<ul>
-    <li>There are a <strong>lot</strong> of new things this time around. You can view the
-    <a href="https://github.com/ajanata/PretendYoureXyzzy/commits/master">GitHub commit history</a>
-    for full details, but here's a summary:<ul>
-      <li>Spectator mode. The host can pick how many spectators the shall allow. Spectators do not
-      participate in the game at all, even as Card Czar.</li>
-      <li>Fill-in-the-blank White Cards. The host can pick how many of these to shuffle into the
-      deck, and when they are played, you are prompted for the text to put on the card.</li>
-      <li>/me chat command for emotes.</li>
-      <li>Option to disable bouncy cards. We've all had a problem selecting the last card on the
-      line; well now, you can uncheck a box up at the top right and they'll stop bouncing around.</li>
-      <li>/sync chat command to re-sync the current game state without reloading the page. It should
-      be harder to de-sync the client now, as well.</li>
-      <li>Users are removed from the server if they have not done anything for an hour.</li>
-      <li>Several more bug fixes and back-end improvements.</li>
-    </ul></li>
-    <li>The Fourth Expansion is up.</li>
-    <li>As you have probably noticed in getting here, there is now a meta-lobby which allows you to
-    choose between multiple servers. They should be identical other than the people playing on them:
-    they are backed by the same card database.</li>
-  </ul></li>
-  <li>5 September 2013:<ul>
-    <li tabindex="0">The Box Expansion and PAX Prime 2013 cards have been added. <strong>If you have
-    any spares of these card numbers and are willing to part with them, it would be awesome if you'd
-    <a href="mailto:ajanata@socialgamer.net?subject=13PAX+cards">email me</a> and send them to me,
-    as I was unable to acquire them at PAX:</strong> 29, 30, 33, 34, 35, 36, 37</li>
+  <li>3 September 2018:<ul>
+    <li>All chat and fill-in-the-blank cards have been disabled. If you're still out of the loop,
+    <a href="https://gist.githubusercontent.com/ajanata/07ededdb584f7bb77a8c7191d3a4bbcc/raw/e76faacc19c2bb598a1a8fd94b9ebcb29c5502e0">
+    here's why.</a></li>
   </ul></li>
   <li><a href="changelog.html">Older entries.</a></li>
 </ul>
@@ -137,8 +72,8 @@ to, for instance, display the number of connected players.
   <li>This game was extensively tested in <a href="http://google.com/chrome">Google Chrome</a>.
   It should work in all recent versions of major browsers, but it may not look 100% as intended. If
   you find a major issue, please
-  <a href="mailto:ajanata@socialgamer.net?subject=PYX%20bug">email me</a> with a screenshot and the
-  name and version of the browser you are using, and I'll try to fix it.
+  <a href="https://github.com/ajanata/PretendYoureXyzzy/issues/new">open a bug on GitHub</a> with a
+  screenshot and the name and version of the browser you are using, and I'll try to fix it.
   </li>
   <li>You may not always see your card in the top area after you play it, but it has been played.
   Also, sometimes the card will display in the top area but be small. I have no idea why either of
@@ -167,7 +102,7 @@ to, for instance, display the number of connected players.
 	    <li>While judging, only one card will be highlighted. It does not matter which card in a group
 	    you click, the game will figure it out.</li>
 	    <li>I know that when you have a lot of players, especially with Pick 2 or Pick 3, it gets very
-      hard to read, and cards overlap (and underlap) your hard, and are hard to click sometimes.
+      hard to read, and cards overlap (and underlap) your hand, and are hard to click sometimes.
       I'll work on this soon. You can resize the window to try to help if you're having problems
       for now.</li>
 	  </ul>
@@ -178,14 +113,12 @@ to, for instance, display the number of connected players.
 <ul>
   <li>There may be an option to display who played every card.</li>
   <li>A registration system and long-term statistics tracking may be added at some point.</li>
-  <li>Support for custom Black and White cards will also likely be added, with a game host option to
-  use them or just the stock cards.</li>
 </ul>
 <p>
   If the game seems to be in a weird state, refresh the page and it should take you back to where
-  you were. It would be helpful to take a screenshot and
-  <a href="mailto:ajanata@socialgamer.net?subject=PYX%20bug">email it to me</a> along with a general
-  description of the problem and the time that it happened (include a time zone please!).
+  you were. It would be helpful to take a screenshot and include it in a
+  <a href="https://github.com/ajanata/PretendYoureXyzzy/issues/new">new bug on GitHub</a> along with
+  a general description of the problem and the time that it happened (include a time zone please!).
 </p>
 <p>
   <input type="button" value="I have read the above; Take me to the game!"

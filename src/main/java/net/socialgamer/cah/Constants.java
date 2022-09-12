@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, Andy Janata
+ * Copyright (c) 2012-2020, Andy Janata
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -25,8 +25,6 @@ package net.socialgamer.cah;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.HashSet;
-import java.util.Set;
 
 import net.socialgamer.cah.data.Game;
 
@@ -44,21 +42,9 @@ import net.socialgamer.cah.data.Game;
  */
 public class Constants {
 
-  public static final int CHAT_FLOOD_MESSAGE_COUNT = 5;
-  public static final int CHAT_FLOOD_TIME = 10 * 1000;
+  public static final int CHAT_FLOOD_MESSAGE_COUNT = 4;
+  public static final int CHAT_FLOOD_TIME = 30 * 1000;
   public static final int CHAT_MAX_LENGTH = 200;
-
-  @SuppressWarnings("serial")
-  public static final Set<String> ADMIN_IP_ADDRESSES = new HashSet<String>() {
-    {
-      add("0:0:0:0:0:0:0:1");
-      add("127.0.0.1");
-      // ajanata
-      add("73.202.162.31");
-      // vsTerminus
-      add("207.161.130.75");
-    }
-  };
 
   /**
    * Enums that implement this interface are valid keys for data returned to clients.
@@ -98,37 +84,44 @@ public class Constants {
   /**
    * Reason why a client disconnected.
    */
-  public enum DisconnectReason {
+  public enum DisconnectReason implements Localizable {
     /**
      * The client was banned by the server administrator.
      */
-    BANNED("B&"),
+    BANNED("B&", "Banned"),
     /**
      * The client made no user-caused requests within the timeout window.
      */
-    IDLE_TIMEOUT("it"),
+    IDLE_TIMEOUT("it", "Kicked due to idle"),
     /**
      * The client was kicked by the server administrator.
      */
-    KICKED("k"),
+    KICKED("k", "Kicked by server administrator"),
     /**
      * The user clicked the "log out" button.
      */
-    MANUAL("man"),
+    MANUAL("man", "Leaving"),
     /**
      * The client failed to make any queries within the timeout window.
      */
-    PING_TIMEOUT("pt");
+    PING_TIMEOUT("pt", "Ping timeout");
 
     private final String reason;
+    private final String message;
 
-    DisconnectReason(final String reason) {
+    DisconnectReason(final String reason, final String message) {
       this.reason = reason;
+      this.message = message;
     }
 
     @Override
     public String toString() {
       return reason;
+    }
+
+    @Override
+    public String getString() {
+      return message;
     }
   }
 
@@ -194,7 +187,8 @@ public class Constants {
     REGISTER("r"),
     SCORE("SC"),
     START_GAME("sg"),
-    STOP_GAME("Sg");
+    STOP_GAME("Sg"),
+    WHOIS("Wi");
 
     private final String op;
 
@@ -211,17 +205,26 @@ public class Constants {
   /**
    * Parameters for client requests.
    */
+  @GoStruct
   public enum AjaxRequest {
+    @GoDataType("int")
     CARD_ID("cid"),
     CARDCAST_ID("cci"),
+    @GoDataType("bool")
     EMOTE("me"),
+    @GoDataType("int")
     GAME_ID("gid"),
+    @GoDataType("GameOptionData")
     GAME_OPTIONS("go"),
+    ID_CODE("idc"),
     MESSAGE("m"),
     NICKNAME("n"),
     OP("o"),
     PASSWORD("pw"),
+    PERSISTENT_ID("pid"),
+    @GoDataType("int")
     SERIAL("s"),
+    @GoDataType("bool")
     WALL("wall");
 
     private final String field;
@@ -239,25 +242,56 @@ public class Constants {
   /**
    * Keys for client request responses.
    */
+  @GoStruct
   public enum AjaxResponse implements ReturnableData {
+    @GoDataType("int")
     BLACK_CARD("bc"),
     @DuplicationAllowed
+    @GoDataType("int")
     CARD_ID(AjaxRequest.CARD_ID),
+    @GoDataType("[]CardSetData")
     CARD_SETS("css"),
+    CLIENT_NAME("cn"),
+    @GoDataType("int64")
+    CONNECTED_AT("ca"),
+    @GoDataType("bool")
     ERROR("e"),
     ERROR_CODE("ec"),
+    // This is explicitly a pointer to the value, and not just the value. We need to be able to tell
+    // the difference between game 0, and lack of game id.
+    // This could be done with an explicit unmarshaller for the type, and a sentinel value, but that
+    // would require significantly more work on the code generation.
     @DuplicationAllowed
+    @GoDataType("*int")
     GAME_ID(AjaxRequest.GAME_ID),
+    @GoDataType("GameInfo")
     GAME_INFO("gi"),
     @DuplicationAllowed
+    @GoDataType("GameOptionData")
     GAME_OPTIONS(AjaxRequest.GAME_OPTIONS),
+    GAME_STATE_DESCRIPTION("gss"),
+    GAME_PERMALINK("gp"),
+    @GoDataType("[]GameInfo")
     GAMES("gl"),
+    @GoDataType("bool")
+    GAME_CHAT_ENABLED("Gce"),
+    @GoDataType("bool")
+    GLOBAL_CHAT_ENABLED("gce"),
+    @GoDataType("[]int")
     HAND("h"),
+    @DuplicationAllowed
+    ID_CODE(AjaxRequest.ID_CODE),
+    @GoDataType("int64")
+    IDLE("idl"),
+    IP_ADDRESS("IP"),
     /**
      * Whether this client is reconnecting or not.
      */
+    @GoDataType("bool")
     IN_PROGRESS("ip"),
+    @GoDataType("int")
     MAX_GAMES("mg"),
+    @GoDataType("[]string")
     NAMES("nl"),
     /**
      * Next thing that should be done in reconnect process. Used once, long string OK.
@@ -265,9 +299,22 @@ public class Constants {
     NEXT("next"),
     @DuplicationAllowed
     NICKNAME(AjaxRequest.NICKNAME),
-    PLAYER_INFO("pi"),
     @DuplicationAllowed
+    PERSISTENT_ID(AjaxRequest.PERSISTENT_ID),
+    @GoDataType("[]GamePlayerInfo")
+    PLAYER_INFO("pi"),
+    /**
+     * Sigil to display next to user's name.
+     */
+    SIGIL("?"),
+    @DuplicationAllowed
+    @GoDataType("int")
     SERIAL(AjaxRequest.SERIAL),
+    @GoDataType("int64")
+    SERVER_STARTED("SS"),
+    SESSION_PERMALINK("sP"),
+    USER_PERMALINK("up"),
+    @GoDataType("[]int")
     WHITE_CARDS("wc");
 
     private final String field;
@@ -286,6 +333,7 @@ public class Constants {
     }
   }
 
+  // hmm this just gets dumped into the regular data it looks like
   public enum ErrorInformation implements ReturnableData {
     BLACK_CARDS_PRESENT("bcp"),
     BLACK_CARDS_REQUIRED("bcr"),
@@ -316,6 +364,7 @@ public class Constants {
     @DuplicationAllowed
     BANNED(DisconnectReason.BANNED, "Banned."),
     CANNOT_JOIN_ANOTHER_GAME("cjag", "You cannot join another game."),
+    CAPSLOCK("CL", "Try turning caps lock off."),
     CARDCAST_CANNOT_FIND("ccf", "Cannot find Cardcast deck with given ID. If you just added this"
         + " deck to Cardcast, wait a few minutes and try again."),
     CARDCAST_INVALID_ID("cii", "Invalid Cardcast ID. Must be exactly 5 characters."),
@@ -323,6 +372,8 @@ public class Constants {
     GAME_FULL("gf", "That game is full. Join another."),
     INVALID_CARD("ic", "Invalid card specified."),
     INVALID_GAME("ig", "Invalid game specified."),
+    INVALID_ID_CODE("iid", "Identification code, if provided, must be between 8 and 100 characters,"
+        + " inclusive."),
     /**
      * TODO this probably should be pulled in from a static inside the RegisterHandler.
      */
@@ -332,7 +383,7 @@ public class Constants {
     /**
      * TODO this probably should be pulled in from a static inside the ChatHandler.
      */
-    MESSAGE_TOO_LONG("mtl", "Messages cannot be longer than 200 characters."),
+    MESSAGE_TOO_LONG("mtl", "Messages cannot be longer than " + CHAT_MAX_LENGTH + " characters."),
     NICK_IN_USE("niu", "Nickname is already in use."),
     NO_CARD_SPECIFIED("ncs", "No card specified."),
     NO_GAME_SPECIFIED("ngs", "No game specified."),
@@ -345,20 +396,27 @@ public class Constants {
         + Game.MINIMUM_BLACK_CARDS + " black cards and " + Game.MINIMUM_WHITE_CARDS_PER_PLAYER
         + " times the player limit white cards."),
     NOT_ENOUGH_PLAYERS("nep", "There are not enough players to start the game."),
+    NOT_ENOUGH_SPACES("nes", "You must use more words in a message that long."),
     NOT_GAME_HOST("ngh", "Only the game host can do that."),
     NOT_IN_THAT_GAME("nitg", "You are not in that game."),
     NOT_JUDGE("nj", "You are not the judge."),
     NOT_REGISTERED("nr", "Not registered. Refresh the page."),
     NOT_YOUR_TURN("nyt", "It is not your turn to play a card."),
     OP_NOT_SPECIFIED("ons", "Operation not specified."),
+    PLAYED_ALL_CARDS("pac", "You already played all the necessary cards!"),
     RESERVED_NICK("rn", "That nick is reserved."),
-    SERVER_ERROR("serr", "An error occured on the server."),
+    REPEAT_MESSAGE("rm",
+        "You can't repeat the same message multiple times in a row."),
+    REPEATED_WORDS("rW", "You must use more unique words in your message."),
+    SERVER_ERROR("serr", "An error occurred on the server."),
     SESSION_EXPIRED("se", "Your session has expired. Refresh the page."),
     TOO_FAST("tf", "You are chatting too fast. Wait a few seconds and try again."),
     TOO_MANY_GAMES("tmg", "There are too many games already in progress. Either join " +
         "an existing game, or wait for one to become available."),
-    TOO_MANY_USERS("tmu", "There are too many users connected. Either join another server, or " +
-        "wait for a user to disconnect."),
+    TOO_MANY_SPECIAL_CHARACTERS("tmsc",
+        "You used too many special characters in that message."),
+    TOO_MANY_USERS("tmu", "There are too many users connected. "
+        + "<strong><a href='https://pretendyoure.xyz/zy'>Try another server.</a></strong>"),
     WRONG_PASSWORD("wp", "That password is incorrect.");
 
     private final String code;
@@ -403,6 +461,7 @@ public class Constants {
     CARDCAST_REMOVE_CARDSET(AjaxOperation.CARDCAST_REMOVE_CARDSET),
     @DuplicationAllowed
     CHAT(AjaxOperation.CHAT),
+    FILTERED_CHAT("FC"),
     GAME_BLACK_RESHUFFLE("gbr"),
     GAME_JUDGE_LEFT("gjl"),
     GAME_JUDGE_SKIPPED("gjs"),
@@ -450,13 +509,17 @@ public class Constants {
   /**
    * Data keys that can be in a long poll response.
    */
+  @GoStruct
   public enum LongPollResponse implements ReturnableData {
     @DuplicationAllowed
+    @GoDataType("BlackCardData")
     BLACK_CARD(AjaxResponse.BLACK_CARD),
     CARDCAST_DECK_INFO("cdi"),
     @DuplicationAllowed
+    @GoDataType("bool")
     EMOTE(AjaxRequest.EMOTE),
     @DuplicationAllowed
+    @GoDataType("bool")
     ERROR(AjaxResponse.ERROR),
     @DuplicationAllowed
     ERROR_CODE(AjaxResponse.ERROR_CODE),
@@ -467,36 +530,64 @@ public class Constants {
     FROM("f"),
     /**
      * A chat message is from an admin. This is going to be done with IP addresses for now.
+     * @deprecated Compare the SIGIL field to Sigil.ADMIN.
      */
+    @Deprecated
+    @GoDataType("bool")
     FROM_ADMIN("fa"),
+    // This is explicitly a pointer to the value, and not just the value. We need to be able to tell
+    // the difference between game 0, and lack of game id.
+    // This could be done with an explicit unmarshaller for the type, and a sentinel value, but that
+    // would require significantly more work on the code generation.
     @DuplicationAllowed
+    @GoDataType("*int")
     GAME_ID(AjaxResponse.GAME_ID),
     @DuplicationAllowed
+    @GoDataType("GameInfo")
     GAME_INFO(AjaxResponse.GAME_INFO),
+    @DuplicationAllowed
+    GAME_PERMALINK(AjaxResponse.GAME_PERMALINK),
     GAME_STATE("gs"),
     @DuplicationAllowed
+    @GoDataType("[]WhiteCardData")
     HAND(AjaxResponse.HAND),
+    @DuplicationAllowed
+    ID_CODE(AjaxRequest.ID_CODE),
     /**
      * The delay until the next game round begins.
      */
+    @GoDataType("int")
     INTERMISSION("i"),
     @DuplicationAllowed
     MESSAGE(AjaxRequest.MESSAGE),
     @DuplicationAllowed
     NICKNAME(AjaxRequest.NICKNAME),
+    @GoDataType("int")
     PLAY_TIMER("Pt"),
     @DuplicationAllowed
+    @GoDataType("[]GamePlayerInfo")
     PLAYER_INFO(AjaxResponse.PLAYER_INFO),
     /**
      * Reason why a player disconnected.
      */
     REASON("qr"),
+    ROUND_PERMALINK("rP"),
     ROUND_WINNER("rw"),
+    /**
+     * Sigil to display next to user's name.
+     */
+    @DuplicationAllowed
+    SIGIL(AjaxResponse.SIGIL),
+    @GoDataType("int64")
     TIMESTAMP("ts"),
     @DuplicationAllowed
+    @GoDataType("bool")
     WALL(AjaxRequest.WALL),
     @DuplicationAllowed
+    @GoDataType("[][]WhiteCardData")
     WHITE_CARDS(AjaxResponse.WHITE_CARDS),
+    // This is just the ID of one of the cards played by the winner
+    @GoDataType("int")
     WINNING_CARD("WC");
 
     private final String field;
@@ -516,13 +607,34 @@ public class Constants {
   }
 
   /**
+   * User sigils. Displayed before the user's name.
+   */
+  public enum Sigil {
+    ADMIN("@"), ID_CODE("+"), NORMAL_USER("");
+
+    private final String sigil;
+
+    Sigil(final String sigil) {
+      this.sigil = sigil;
+    }
+
+    @Override
+    public String toString() {
+      return sigil;
+    }
+  }
+
+  /**
    * Data fields for white cards.
    */
+  @GoStruct
   public enum WhiteCardData {
     @DuplicationAllowed
+    @GoDataType("int")
     ID(AjaxRequest.CARD_ID),
     TEXT("T"),
     WATERMARK("W"),
+    @GoDataType("bool")
     WRITE_IN("wi");
 
     private final String key;
@@ -544,10 +656,14 @@ public class Constants {
   /**
    * Data fields for black cards.
    */
+  @GoStruct
   public enum BlackCardData {
+    @GoDataType("int")
     DRAW("D"),
     @DuplicationAllowed
+    @GoDataType("int")
     ID(WhiteCardData.ID),
+    @GoDataType("int")
     PICK("PK"),
     @DuplicationAllowed
     TEXT(WhiteCardData.TEXT),
@@ -573,14 +689,20 @@ public class Constants {
   /**
    * Data fields for card sets.
    */
+  @GoStruct
   public enum CardSetData {
+    @GoDataType("bool")
     BASE_DECK("bd"),
+    @GoDataType("int")
     BLACK_CARDS_IN_DECK("bcid"),
     CARD_SET_DESCRIPTION("csd"),
     CARD_SET_NAME("csn"),
     @DuplicationAllowed
+    @GoDataType("int")
     ID(WhiteCardData.ID),
+    @GoDataType("int")
     WEIGHT("w"),
+    @GoDataType("int")
     WHITE_CARDS_IN_DECK("wcid");
 
     private final String key;
@@ -603,7 +725,6 @@ public class Constants {
    * A game's current state.
    */
   public enum GameState implements Localizable {
-    DEALING("d", "In Progress"),
     JUDGING("j", "In Progress"),
     LOBBY("l", "Not Started"),
     PLAYING("p", "In Progress"),
@@ -631,14 +752,22 @@ public class Constants {
   /**
    * Fields for information about a game.
    */
+  @GoStruct
   public enum GameInfo {
+    @GoDataType("int64")
+    CREATED("gca"),
     HOST("H"),
     @DuplicationAllowed
+    @GoDataType("int")
     ID(AjaxRequest.GAME_ID),
     @DuplicationAllowed
+    @GoDataType("GameOptionData")
     GAME_OPTIONS(AjaxRequest.GAME_OPTIONS),
+    @GoDataType("bool")
     HAS_PASSWORD("hp"),
+    @GoDataType("[]string")
     PLAYERS("P"),
+    @GoDataType("[]string")
     SPECTATORS("V"),
     STATE("S");
 
@@ -661,16 +790,22 @@ public class Constants {
   /**
    * Fields for options about a game.
    */
+  @GoStruct
   public enum GameOptionData {
+    @GoDataType("int")
     BLANKS_LIMIT("bl"),
     @DuplicationAllowed
+    @GoDataType("[]int")
     CARD_SETS(AjaxResponse.CARD_SETS),
     @DuplicationAllowed
     PASSWORD(AjaxRequest.PASSWORD),
+    @GoDataType("int")
     PLAYER_LIMIT("pL"),
+    @GoDataType("int")
     SPECTATOR_LIMIT("vL"),
+    @GoDataType("int")
     SCORE_LIMIT("sl"),
-    USE_TIMER("ut");
+    TIMER_MULTIPLIER("tm");
 
     private final String key;
 
@@ -691,8 +826,10 @@ public class Constants {
   /**
    * Keys for the information about players in a game.
    */
+  @GoStruct
   public enum GamePlayerInfo {
     NAME("N"),
+    @GoDataType("int")
     SCORE("sc"),
     STATUS("st");
 
@@ -762,5 +899,22 @@ public class Constants {
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface DuplicationAllowed {
+  }
+
+  /**
+   * Mark an enum to generate a struct for it in the Go output. This would be used for things that
+   * describe objects, not a list of valid values for a field.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface GoStruct {
+  }
+
+  /**
+   * Mark an enum value as having a specific Go data type. The default (if this annotation is not
+   * specified) is string.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface GoDataType {
+    String value() default "string";
   }
 }

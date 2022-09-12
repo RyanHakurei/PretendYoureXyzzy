@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <%--
-Copyright (c) 2013, Andy Janata
+Copyright (c) 2013-2018, Andy Janata
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -26,6 +26,7 @@ Interface to view and search all existing cards and card sets.
 
 @author Andy Janata (ajanata@socialgamer.net)
 --%>
+
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.HashMap" %>
@@ -35,6 +36,8 @@ Interface to view and search all existing cards and card sets.
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="com.google.inject.Injector" %>
+<%@ page import="com.google.inject.Key" %>
+<%@ page import="net.socialgamer.cah.CahModule.IncludeInactiveCardsets" %>
 <%@ page import="net.socialgamer.cah.HibernateUtil" %>
 <%@ page import="net.socialgamer.cah.StartupUtils" %>
 <%@ page import="net.socialgamer.cah.db.PyxBlackCard" %>
@@ -47,15 +50,16 @@ Interface to view and search all existing cards and card sets.
 
 ServletContext servletContext = pageContext.getServletContext();
 Injector injector = (Injector) servletContext.getAttribute(StartupUtils.INJECTOR);
-Properties props = injector.getInstance(Properties.class);
+boolean includeInactive = injector.getInstance(Key.get(Boolean.TYPE, IncludeInactiveCardsets.class));
 
 // cheap way to make sure we can close the hibernate session at the end of the page
 try {
   // load from db
   @SuppressWarnings("unchecked")
   List<PyxCardSet> cardSets = hibernateSession
-      .createQuery(PyxCardSet.getCardsetQuery(props))
+      .createQuery(PyxCardSet.getCardsetQuery(includeInactive))
       .setReadOnly(true)
+      .setCacheable(true)
       .list();
   
   // all of the data to send to the client
@@ -71,6 +75,7 @@ try {
   
   Map<Integer, Object> cardSetsData = new HashMap<Integer, Object>();
   data.put("cardSets", cardSetsData);
+  int i = 0;
   for (PyxCardSet cardSet: cardSets) {
     Map<String, Object> cardSetData = new HashMap<String, Object>();
     cardSetData.put("name", cardSet.getName());
@@ -99,7 +104,7 @@ try {
     }
     cardSetData.put("blackCards", blackCardIds);
     
-    cardSetsData.put(cardSet.getWeight(), cardSetData);
+    cardSetsData.put(i++, cardSetData);
   }
   
   Map<Integer, Object> blackCardsData = new HashMap<Integer, Object>();
@@ -134,12 +139,15 @@ try {
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Pretend You're Xyzzy: View Cards</title>
-<script type="text/javascript" src="js/jquery-1.8.2.js"></script>
+<script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-migrate-1.2.1.js"></script>
 <script type="text/javascript" src="js/jquery.cookie.js"></script>
-<script type="text/javascript" src="js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="js/jquery.json.js"></script>
 <script type="text/javascript" src="js/QTransform.js"></script>
-<script type="text/javascript" src="js/jquery-ui.js"></script>
-<link rel="stylesheet" type="text/css" href="jquery-ui.css" media="screen" />
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/jquery.tablesorter.js"></script>
+<link rel="stylesheet" type="text/css" href="cah.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="jquery-ui.min.css" media="screen" />
 <jsp:include page="analytics.jsp" />
 <script type="text/javascript">
 var data = <%= JSONValue.toJSONString(data) %>;

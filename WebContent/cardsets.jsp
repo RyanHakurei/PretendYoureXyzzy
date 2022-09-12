@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <%--
-Copyright (c) 2012, Andy Janata
+Copyright (c) 2012-2018, Andy Janata
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -27,20 +27,28 @@ Administration tools.
 @author Andy Janata (ajanata@socialgamer.net)
 --%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="com.google.inject.Injector" %>
+<%@ page import="com.google.inject.Key" %>
+<%@ page import="com.google.inject.TypeLiteral" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Set" %>
+<%@ page import="net.socialgamer.cah.CahModule.Admins" %>
 <%@ page import="net.socialgamer.cah.HibernateUtil" %>
+<%@ page import="net.socialgamer.cah.StartupUtils" %>
 <%@ page import="net.socialgamer.cah.db.PyxBlackCard" %>
 <%@ page import="net.socialgamer.cah.db.PyxCardSet" %>
 <%@ page import="net.socialgamer.cah.db.PyxWhiteCard" %>
-<%@ page import="net.socialgamer.cah.Constants" %>
 <%@ page import="net.socialgamer.cah.RequestWrapper" %>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page import="org.hibernate.Session" %>
 <%@ page import="org.hibernate.Transaction" %>
 <%
-  RequestWrapper wrapper = new RequestWrapper(request);
-if (!Constants.ADMIN_IP_ADDRESSES.contains(wrapper.getRemoteAddr())) {
+RequestWrapper wrapper = new RequestWrapper(request);
+ServletContext servletContext = pageContext.getServletContext();
+Injector injector = (Injector) servletContext.getAttribute(StartupUtils.INJECTOR);
+Set<String> admins = injector.getInstance(Key.get(new TypeLiteral<Set<String>>(){}, Admins.class));
+if (!admins.contains(wrapper.getRemoteAddr())) {
   response.sendError(403, "Access is restricted to known hosts");
   return;
 }
@@ -151,7 +159,7 @@ try {
   }
   
   @SuppressWarnings("unchecked")
-  List<PyxCardSet> cardSets = hibernateSession.createQuery("from PyxCardSet order by weight, id")
+  List<PyxCardSet> cardSets = hibernateSession.createQuery("from PyxCardSet order by weight, name")
       .setReadOnly(true).list();
   
   @SuppressWarnings("unchecked")
@@ -168,7 +176,7 @@ try {
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>PYX - Edit Card Sets</title>
-<script type="text/javascript" src="js/jquery-1.8.2.js"></script>
+<script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
     $('#addBlackCards').click(function() {
@@ -242,6 +250,9 @@ select {
       <th>Delete</th>
       <th>Edit</th>
       <th>Weight</th>
+      <th>Blacks</th>
+      <th>Whites</th>
+      <th>Active</th>
     </tr>
   </thead>
   <tbody>
@@ -253,6 +264,9 @@ select {
         <td><a href="?delete=<%=cardSet.getId()%>" onclick="return confirm('Are you sure?')">Delete</a></td>
         <td><a href="?edit=<%=cardSet.getId()%>">Edit</a></td>
         <td><%=cardSet.getWeight()%></td>
+        <td><%=cardSet.getBlackCards().size()%></td>
+        <td><%=cardSet.getWhiteCards().size()%></td>
+        <td><%=cardSet.isActive()%></td>
       </tr>
     <%
       }
@@ -279,11 +293,11 @@ select {
   </h2>
   <label for="cardSetName">Name:</label>
   <input type="text" name="cardSetName" id="cardSetName" size="50"
-      value="<%=editCardSet != null ? StringEscapeUtils.escapeXml(editCardSet.getName()) : ""%>" />
+      value="<%=editCardSet != null ? StringEscapeUtils.escapeXml11(editCardSet.getName()) : ""%>" />
   <br/>
   <label for="cardSetDescription">Description:</label>
   <input type="text" name="cardSetDescription" id="cardSetDescription" size="50"
-      value="<%=editCardSet != null ? StringEscapeUtils.escapeXml(editCardSet.getDescription()) : ""%>" />
+      value="<%=editCardSet != null ? StringEscapeUtils.escapeXml11(editCardSet.getDescription()) : ""%>" />
   <br/>
   <label for="cardSetWeight">Weight:</label>
   <input type="text" name="cardSetWeight" id="cardSetWeight" size="4"
@@ -304,7 +318,7 @@ select {
       for (PyxBlackCard blackCard : blackCards) {
     %>
       <option value="<%=blackCard.getId()%>">
-        <%=StringEscapeUtils.escapeXml(blackCard.toString())%>
+        <%=StringEscapeUtils.escapeXml11(blackCard.toString())%>
       </option>
     <%
       }
@@ -324,7 +338,7 @@ select {
         for (PyxBlackCard blackCard : editCardSet.getBlackCards()) {
       %>
         <option value="<%=blackCard.getId()%>" id="bc_<%=blackCard.getId()%>">
-          <%=StringEscapeUtils.escapeXml(blackCard.toString())%>
+          <%=StringEscapeUtils.escapeXml11(blackCard.toString())%>
         </option>
       <%
         }
@@ -341,7 +355,7 @@ select {
       for (PyxWhiteCard whiteCard : whiteCards) {
     %>
       <option value="<%=whiteCard.getId()%>">
-        <%=StringEscapeUtils.escapeXml(whiteCard.toString())%>
+        <%=StringEscapeUtils.escapeXml11(whiteCard.toString())%>
       </option>
     <%
       }
@@ -361,7 +375,7 @@ select {
         for (PyxWhiteCard whiteCard : editCardSet.getWhiteCards()) {
       %>
         <option value="<%= whiteCard.getId() %>" id="wc_<%= whiteCard.getId() %>">
-          <%= StringEscapeUtils.escapeXml(whiteCard.toString()) %>
+          <%= StringEscapeUtils.escapeXml11(whiteCard.toString()) %>
         </option>
       <% } %>
     <% } %>

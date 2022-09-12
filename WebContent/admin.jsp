@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <%--
-Copyright (c) 2012, Andy Janata
+Copyright (c) 2012-2018, Andy Janata
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -32,8 +32,8 @@ Administration tools.
 <%@ page import="com.google.inject.TypeLiteral" %>
 <%@ page import="net.socialgamer.cah.RequestWrapper" %>
 <%@ page import="net.socialgamer.cah.StartupUtils" %>
+<%@ page import="net.socialgamer.cah.CahModule.Admins" %>
 <%@ page import="net.socialgamer.cah.CahModule.BanList" %>
-<%@ page import="net.socialgamer.cah.Constants" %>
 <%@ page import="net.socialgamer.cah.Constants.DisconnectReason" %>
 <%@ page import="net.socialgamer.cah.Constants.LongPollEvent" %>
 <%@ page import="net.socialgamer.cah.Constants.LongPollResponse" %>
@@ -50,13 +50,13 @@ Administration tools.
 
 <%
 RequestWrapper wrapper = new RequestWrapper(request);
-if (!Constants.ADMIN_IP_ADDRESSES.contains(wrapper.getRemoteAddr())) {
+ServletContext servletContext = pageContext.getServletContext();
+Injector injector = (Injector) servletContext.getAttribute(StartupUtils.INJECTOR);
+Set<String> admins = injector.getInstance(Key.get(new TypeLiteral<Set<String>>(){}, Admins.class));
+if (!admins.contains(wrapper.getRemoteAddr())) {
   response.sendError(403, "Access is restricted to known hosts");
   return;
 }
-
-ServletContext servletContext = pageContext.getServletContext();
-Injector injector = (Injector) servletContext.getAttribute(StartupUtils.INJECTOR);
 
 ConnectedUsers connectedUsers = injector.getInstance(ConnectedUsers.class);
 Set<String> banList = injector.getInstance(Key.get(new TypeLiteral<Set<String>>(){}, BanList.class));
@@ -100,7 +100,7 @@ if (banParam != null) {
    user.enqueueMessage(qm);
 
    connectedUsers.removeUser(user, DisconnectReason.BANNED);
-   banList.add(user.getHostName());
+   banList.add(user.getHostname());
   }
   response.sendRedirect("admin.jsp");
   return;
@@ -214,7 +214,7 @@ User list:
 	  %>
 	  <tr>
 	    <td><%= u.getNickname() %></td>
-	    <td><%= u.getHostName() %></td>
+	    <td><%= u.getHostname() %></td>
 	    <td>
         <a href="?kick=<%= u.getNickname() %>">Kick</a>
         <a href="?ban=<%= u.getNickname() %>">Ban</a>

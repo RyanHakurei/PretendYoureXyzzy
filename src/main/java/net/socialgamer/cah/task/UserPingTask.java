@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2012, Andy Janata
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification, are permitted
  * provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this list of conditions
  *   and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright notice, this list of
  *   conditions and the following disclaimer in the documentation and/or other materials provided
  *   with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
@@ -21,29 +21,36 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package net.socialgamer.cah.handlers;
+package net.socialgamer.cah.task;
 
-import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import net.socialgamer.cah.Constants.AjaxOperation;
-import net.socialgamer.cah.Constants.ReturnableData;
-import net.socialgamer.cah.RequestWrapper;
+import net.socialgamer.cah.data.ConnectedUsers;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 
 /**
- * Admin handler for turning verbose logging on and off. This has been temporarily abandoned as
- * using this ajax framework for administration purposes would take a while to set up.
- * 
- * @author Andy Janata (ajanata@socialgamer.net)
+ * Timer task to check for disconnected and idle clients.
+ *
+ * @author Andy Janata (ajanata@gmail.com)
  */
-public class AdminSetVerboseLog extends AdminHandler {
+@Singleton
+public class UserPingTask extends SafeTimerTask {
 
-  public static final String OP = AjaxOperation.ADMIN_SET_VERBOSE_LOG.toString();
+  private final ConnectedUsers users;
+  private final ScheduledThreadPoolExecutor globalTimer;
 
-  @Override
-  public Map<ReturnableData, Object> handle(final RequestWrapper request) {
-    // TODO Auto-generated method stub
-    return null;
+  @Inject
+  public UserPingTask(final ConnectedUsers users, final ScheduledThreadPoolExecutor globalTimer) {
+    this.users = users;
+    this.globalTimer = globalTimer;
   }
 
+  @Override
+  public void process() {
+    users.checkForPingAndIdleTimeouts();
+    globalTimer.purge();
+  }
 }
